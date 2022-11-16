@@ -1,14 +1,25 @@
-﻿string source = "pure text.txt";
-string workingFile = "working file2.txt";
+﻿using System.Text.RegularExpressions;
+
+string source = "pure text.txt";
+string workingFile = "working file.txt";
 string workingFormattedFile = "formatted file.txt";
 
-for (int i = 1; i <= 60; i++)
+for (int i = 1; i <= 120; i++)
 {
+    RemoveEmptyLines(source);
+    if (ReadWriteSpecificLine(source, workingFile, "К разделу") == true)
+        RemoveLines(source, 1);
+    RemoveEmptyLines(source);
     WriteHeader(ReadFirstLine());
+    RemoveEmptyLines(source);
     RemoveLines(source, ReadWriteAnswers(source, workingFile));
+    RemoveEmptyLines(source);
 }
-for (int i = 1; i <= 60; i++)
+
+for (int i = 1; i <= 120; i++)
 {
+    if (ReadWriteSpecificLine(workingFile, workingFormattedFile, "К разделу") == true)
+        RemoveLines(workingFile, 1);
     ReadWrite(workingFile, workingFormattedFile, 3);
     RemoveLines(workingFile, 3);
     WriteArray
@@ -16,9 +27,38 @@ for (int i = 1; i <= 60; i++)
             (FillArray
                 (CreateArray(ReadReturnCount(workingFile)), workingFile)),
                                                     workingFormattedFile);
-    RemoveLines(workingFile, ReadReturnCount(workingFile) + 1);
+    RemoveLines(workingFile, ReadReturnCount(workingFile));
 }
 
+void RemoveEmptyLines(string whereToRemove)
+{
+    while (CheckIfEmptyLine(whereToRemove) != false) RemoveLines(whereToRemove, 1);
+}
+
+bool CheckIfEmptyLine(string original)
+{
+    StreamReader sr = new StreamReader(original);
+    string line = sr.ReadLine();
+    bool check = false;
+    if (line == "") check = true;
+    sr.Close();
+    return check;
+}
+
+bool ReadWriteSpecificLine(string original, string target, string specificLine)
+{
+    StreamReader sr = new StreamReader(original);
+    StreamWriter sw = new StreamWriter(target, true);
+    string line = sr.ReadLine();
+    bool m = Regex.IsMatch(line, specificLine);
+    if (m == true)
+    {
+        sw.WriteLine($"{line}");
+    }
+    sr.Close();
+    sw.Close();
+    return m;
+}
 
 int ReadReturnCount(string original)
 {
@@ -29,9 +69,9 @@ int ReadReturnCount(string original)
     while (check == false)
     {
         line = sr.ReadLine();
-        if (line == "ANSWER A" || line == "ANSWER B" ||
-            line == "ANSWER C" || line == "ANSWER D" ||
-            line == "ANSWER E") check = true;
+        if (line == "ANSW a" || line == "ANSW b" ||
+            line == "ANSW c" || line == "ANSW d" ||
+            line == "ANSW e" || line == "ANSW f") check = true;
         count++;
     }
     sr.Close();
@@ -60,29 +100,35 @@ string[] FillArray(string[] a, string original)
 
 string[] SortArray(string[] a)
 {
-    if (a[a.Length - 1] == "ANSWER B")
+    if (a[a.Length - 1] == "ANSW b")
     {
         string temp = a[0];
         a[0] = a[1];
         a[1] = temp;
     }
-    if (a[a.Length - 1] == "ANSWER C")
+    if (a[a.Length - 1] == "ANSW c")
     {
         string temp = a[0];
         a[0] = a[2];
         a[2] = temp;
     }
-    if (a[a.Length - 1] == "ANSWER D")
+    if (a[a.Length - 1] == "ANSW d")
     {
         string temp = a[0];
         a[0] = a[3];
         a[3] = temp;
     }
-    if (a[a.Length - 1] == "ANSWER E")
+    if (a[a.Length - 1] == "ANSW e")
     {
         string temp = a[0];
         a[0] = a[4];
         a[4] = temp;
+    }
+    if (a[a.Length - 1] == "ANSW f")
+    {
+        string temp = a[0];
+        a[0] = a[5];
+        a[5] = temp;
     }
     a = a.Where((val, idx) => idx != a.Length - 1).ToArray();
     return a;
@@ -95,6 +141,7 @@ void WriteArray(string[] a, string target)
     {
         sw.WriteLine(a[i]);
     }
+    sw.WriteLine("-------");
     sw.Close();
 }
 
@@ -138,7 +185,6 @@ int ReadWriteAnswers(string original, string target)
         line = sr.ReadLine();
         sw.WriteLine(line);
     }
-    sw.WriteLine("-------");
     sw.Close();
     sr.Close();
     return count;
@@ -147,7 +193,7 @@ int ReadWriteAnswers(string original, string target)
 void WriteHeader(string extract)
 {
     StreamWriter sw = new StreamWriter(workingFile, true);
-    sw.WriteLine("Номер:##282.1.х.1.х.1.0.(1)");
+    sw.WriteLine("Номер:##43659.1.х.1.х.1.0.(1)");
     sw.Write("Задание: ");
     sw.WriteLine(extract);
     RemoveLines(source, 1);
