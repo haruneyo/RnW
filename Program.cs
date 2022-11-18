@@ -4,31 +4,32 @@ string source = "pure text.txt";
 string workingFile = "working file.txt";
 string workingFormattedFile = "formatted file.txt";
 
-for (int i = 1; i <= 120; i++)
+for (int i = 1; i <= 1; i++)
 {
     RemoveEmptyLines(source);
     if (ReadWriteSpecificLine(source, workingFile, "К разделу") == true)
         RemoveLines(source, 1);
     RemoveEmptyLines(source);
-    WriteHeader(ReadFirstLine());
+    ReadWriteHeader(source, workingFile);
+    RemoveLines(source, 1);
     RemoveEmptyLines(source);
     RemoveLines(source, ReadWriteAnswers(source, workingFile));
     RemoveEmptyLines(source);
 }
 
-for (int i = 1; i <= 120; i++)
-{
-    if (ReadWriteSpecificLine(workingFile, workingFormattedFile, "К разделу") == true)
-        RemoveLines(workingFile, 1);
-    ReadWrite(workingFile, workingFormattedFile, 3);
-    RemoveLines(workingFile, 3);
-    WriteArray
-        (SortArray
-            (FillArray
-                (CreateArray(ReadReturnCount(workingFile)), workingFile)),
-                                                    workingFormattedFile);
-    RemoveLines(workingFile, ReadReturnCount(workingFile));
-}
+// for (int i = 1; i <= 120; i++)
+// {
+//     if (ReadWriteSpecificLine(workingFile, workingFormattedFile, "К разделу") == true)
+//         RemoveLines(workingFile, 1);
+//     ReadWrite(workingFile, workingFormattedFile, 3);
+//     RemoveLines(workingFile, 3);
+//     WriteArray
+//         (SortArray
+//             (FillArray
+//                 (CreateArray(ReadReturnCount(workingFile)), workingFile)),
+//                                                     workingFormattedFile);
+//     RemoveLines(workingFile, ReadReturnCount(workingFile));
+// }
 
 void RemoveEmptyLines(string whereToRemove)
 {
@@ -165,13 +166,13 @@ void RemoveLines(string original, int c)
     File.WriteAllLines(original, lines.Skip(c).ToArray());
 }
 
-string ReadFirstLine()
-{
-    StreamReader sr = new StreamReader(source);
-    string extract = sr.ReadLine();
-    sr.Close();
-    return extract;
-}
+// string ReadFirstLine()
+// {
+//     StreamReader sr = new StreamReader(source);
+//     string extract = sr.ReadLine();
+//     sr.Close();
+//     return extract;
+// }
 
 int ReadWriteAnswers(string original, string target)
 {
@@ -190,12 +191,15 @@ int ReadWriteAnswers(string original, string target)
     return count;
 }
 
-void WriteHeader(string extract)
+void ReadWriteHeader(string original, string target)
 {
-    StreamWriter sw = new StreamWriter(workingFile, true);
+    StreamReader sr = new StreamReader(original);
+    StreamWriter sw = new StreamWriter(target, true);
+    string line = sr.ReadLine();
+    line = Regex.Replace(line, @"[\d-]\) ", string.Empty);
     sw.WriteLine("Номер:##43659.1.х.1.х.1.0.(1)");
     sw.Write("Задание: ");
-    sw.WriteLine(extract);
-    RemoveLines(source, 1);
+    sw.WriteLine(line);
+    sr.Close();
     sw.Close();
 }
