@@ -166,14 +166,6 @@ void RemoveLines(string original, int c)
     File.WriteAllLines(original, lines.Skip(c).ToArray());
 }
 
-// string ReadFirstLine()
-// {
-//     StreamReader sr = new StreamReader(source);
-//     string extract = sr.ReadLine();
-//     sr.Close();
-//     return extract;
-// }
-
 int ReadWriteAnswers(string original, string target)
 {
     int count = ReadReturnCount(original);
@@ -184,6 +176,7 @@ int ReadWriteAnswers(string original, string target)
     for (int i = 0; i < count; i++)
     {
         line = sr.ReadLine();
+        line = Regex.Replace(line, @"[0-9]\) ", string.Empty); // [0-9] for digits, [a-z] for letters
         sw.WriteLine(line);
     }
     sw.Close();
@@ -196,7 +189,8 @@ void ReadWriteHeader(string original, string target)
     StreamReader sr = new StreamReader(original);
     StreamWriter sw = new StreamWriter(target, true);
     string line = sr.ReadLine();
-    line = Regex.Replace(line, @"[\d-]\) ", string.Empty);
+    char[] replace = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ')', ' '};
+	line = line.TrimStart(replace);
     sw.WriteLine("Номер:##43659.1.х.1.х.1.0.(1)");
     sw.Write("Задание: ");
     sw.WriteLine(line);
