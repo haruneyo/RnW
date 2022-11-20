@@ -7,20 +7,27 @@ bool needToRemoveEmptyLines = false;
 bool needToRemoveWhiteSpaces = false;
 
 string testNumber = "Номер:##43680.1.х.1.х.1.0.(1)"; // The number that is put before every question
-string keyWordRRCHeader = @"А\) "; // Specify the line that would stop the method that reads and writes headers
+string keyWordRRCHeaderML = @"А\) "; // Specify the line that would stop the method that reads and writes header
+string keyWordRRCAnswersML = "END"; // Specify the line that would stop the method that counts the number of lines in the answer section
+string answerMarkers = @"[А-Я]\) "; // Specify the markers that are used in the answer section so that the program can accurately determine the number of answers in a question
 char[] replaceStartHeader = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ')', '.', '-', '–', '—', '―', '‒', ' ' }; // Contains characters to remove at the start of the header
-char[] replaceEndAnswer = { '.', ',', ':', ';', '-', '–', '—', '―', '‒' }; // Contains characters to remove at the end of an answer
-//string[] removeLineIfContains = { "Примечан", "Пояснение", "Комментарий" }; // Obsolete for now
-string[] removeNumberingInAnswers = { @"\-", @"[А-Я]\) ", @"\- " }; // Specify digits or letters to remove from the beginning of the answers
-string[] keyWordRRCAnswers = { "Примечан", "Пояснение", "Комментарий" }; // Specify words that begin after the questions
+char[] replaceEndAnswer = { '.', ',', ':', ';', '-', '–', '—', '―', '‒', ' ' }; // Contains characters to remove at the end of an answer
+string[] removeNumberingInAnswers = { @"[А-Я]\) " }; // Specify digits or letters to remove from the beginning of the answers
+string[] keyWordRRCAnswers = { "END" }; // Specify words that begin after the questions
 string rightAnswerContains = @"\(\+\)"; // If the right answer marker is inside the answer, put it here
-char[] rightAnswerMarkerRemove = { '(', '+', ')' }; // Put the right answer marker here character by character to remove it later
+char[] rightAnswerMarkerRemove = { '(', '+', ')', ' ' }; // Put the right answer marker here character by character to remove it later
 
 if (needToRemoveEmptyLines == true) RemoveAllEmptyLines(source);
 if (needToRemoveWhiteSpaces == true) RemoveAllWhiteSpaces(source);
 
-ReadWriteHeaderUntil(source, workingFile);
-// for (int i = 1; i <= 4; i++) //199
+for (int i = 1; i <= 0; i++) // Use this cycle for texts with multiple lines for one sentence
+{
+    RemoveLines(source, ReadWriteHeaderMultLines(source, workingFile)); 
+    RemoveLines(source, ReadWriteAnswersMultLines(source, workingFile));
+    RemoveLines(source, ReadReturnCountMultLines(source, "BEGIN") + 1); 
+}
+
+// for (int i = 1; i <= 4; i++) // Use this cycle for texts with single line for one sentence
 // {
 //     // if (ReadWriteSpecificLine(source, workingFile, "К разделу") == true)
 //     //     RemoveLines(source, 1);
@@ -29,19 +36,21 @@ ReadWriteHeaderUntil(source, workingFile);
 //     RemoveLines(source, ReadWriteAnswers(source, workingFile));
 // }
 
-// for (int i = 1; i <= 4; i++)
-// {
-//     // if (ReadWriteSpecificLine(workingFile, workingFormattedFile, "К разделу") == true)
-//     //     RemoveLines(workingFile, 1);
-//     ReadWrite(workingFile, workingFormattedFile, 3);
-//     RemoveLines(workingFile, 3);
-//     WriteArray
-//         (SortArray
-//             (FillArray
-//                 (CreateArray(ReadReturnCountAnswers(workingFile)), workingFile)),
-//                                                     workingFormattedFile);
-//     RemoveLines(workingFile, ReadReturnCountAnswers(workingFile));
-// }
+for (int i = 1; i <= 0; i++)
+{
+    // if (ReadWriteSpecificLine(workingFile, workingFormattedFile, "К разделу") == true)
+    //     RemoveLines(workingFile, 1);
+    ReadWrite(workingFile, workingFormattedFile, 3);
+    RemoveLines(workingFile, 3);
+    WriteArray
+        (SortArray
+            (FillArray
+                (CreateArray(ReadReturnCountAnswers(workingFile)), workingFile)),
+                                                    workingFormattedFile);
+    RemoveLines(workingFile, ReadReturnCountAnswers(workingFile));
+}
+
+// ===================== //
 
 void RemoveAllEmptyLines(string original)
 {
@@ -168,7 +177,7 @@ string[] SortArray(string[] a)
             string temp = a[0];
             a[0] = a[i];
             a[i] = temp;
-            a[0] = a[0].TrimEnd(rightAnswerMarkerRemove);
+            a[0] = a[0].TrimStart(rightAnswerMarkerRemove); // Change TrimEnd and TrimStart depending on the position of the marker
             break;
         }
     }
@@ -243,13 +252,13 @@ void ReadWriteHeaderOneLine(string original, string target)
     sw.Close();
 }
 
-void ReadWriteHeaderUntil(string original, string target)
+int ReadWriteHeaderMultLines(string original, string target)
 {
     StreamReader sr = new StreamReader(original);
     StreamWriter sw = new StreamWriter(target, true);
     string lineWriter;
     string lineReady = string.Empty;
-    int count = ReadReturnCountHeader(original);
+    int count = ReadReturnCountMultLines(original, keyWordRRCHeaderML);
     string[] array = new string[count];
     for (int i = 0; i < array.Length; i++)
     {
@@ -263,9 +272,72 @@ void ReadWriteHeaderUntil(string original, string target)
     sw.WriteLine(lineReady);
     sr.Close();
     sw.Close();
+    return count;
 }
 
-int ReadReturnCountHeader(string original)
+int ReadWriteAnswersMultLines(string original, string target)
+{
+    StreamReader sr = new StreamReader(original);
+    StreamWriter sw = new StreamWriter(target, true);
+    string line;
+    int count = ReadReturnCountMultLines(original, keyWordRRCAnswersML);
+    int numAnswers = ReadReturnNumberOfAnswers(original, count);
+    string[] arrayAll = new string[count];
+    string[] arrayAnswers = new string[numAnswers];
+    for (int i = 0; i < arrayAll.Length; i++)
+    {
+        line = sr.ReadLine();
+        arrayAll[i] = line;
+    }
+
+    string[] thing = { @"Б\) ", @"В\) ", @"Г\) ", @"Д\) ", @"Е\) ", "END"};
+    int n = 0;
+    for (int j = 0; j < arrayAnswers.Length; j++)
+    {
+        if (j == arrayAnswers.Length - 1)
+        {
+            thing[j] = "END";
+        }
+        int index = -1;
+        if (j == arrayAnswers.Length - 1)
+        {
+            index++;
+        }
+        bool m = false;
+        for (int i = 0; i < arrayAll.Length; i++)
+        {
+            m = Regex.IsMatch(arrayAll[i], thing[j]);
+            index++;
+            if (m == true) break;
+        }
+        for (; n < index; n++)
+        {
+            arrayAnswers[j] += arrayAll[n] + " ";
+        }
+        n = index;
+    }
+
+    for (int j = 0; j < removeNumberingInAnswers.Length; j++)
+    {
+        for (int i = 0; i < arrayAnswers.Length; i++)
+        {
+            arrayAnswers[i] = Regex.Replace(arrayAnswers[i], removeNumberingInAnswers[j], string.Empty); 
+            arrayAnswers[i] = arrayAnswers[i].TrimEnd(replaceEndAnswer);
+        }
+    }
+
+    sw.WriteLine("Ответы:");
+    for (int i = 0; i < arrayAnswers.Length; i++)
+    {
+        sw.WriteLine(arrayAnswers[i]);
+    }
+    sw.WriteLine("END");
+    sw.Close();
+    sr.Close();
+    return count + 1;
+}
+
+int ReadReturnCountMultLines(string original, string endWord)
 {
     StreamReader sr = new StreamReader(original);
     int count = -1;
@@ -274,9 +346,25 @@ int ReadReturnCountHeader(string original)
     while (m == false)
     {
         lineCounter = sr.ReadLine();
-        m = Regex.IsMatch(lineCounter, keyWordRRCHeader);
+        m = Regex.IsMatch(lineCounter, endWord);
         count++;
         if (m == true) break;
+    }
+    sr.Close();
+    return count;
+}
+
+int ReadReturnNumberOfAnswers(string original, int repeats)
+{
+    StreamReader sr = new StreamReader(original);
+    int count = 0;
+    bool m = false;
+    string line;
+    for (int i = 0; i < repeats; i++)
+    {
+        line = sr.ReadLine();
+        m = Regex.IsMatch(line, answerMarkers);
+        if (m == true) count++;
     }
     sr.Close();
     return count;
