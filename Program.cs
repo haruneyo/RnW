@@ -9,21 +9,24 @@ bool needToRemoveEmptyLines = false; // True if need to remove all empty lines f
 bool needToRemoveWhiteSpaces = false; // True if need to remove all white spaces from the source file
 
 string type = "single"; // Use "mult" for multiple lines for a sentence or "single" for a single line for a sentence
-int repeat = 3; // How many questions there are in the file
+int repeat = 184; // How many questions there are in the file
 
-string testNumber = "Номер:##43629.1.х.1.х.1.0.(1)"; // The number that is put before every question
+string testNumber = "Номер:##30896.1.х.1.х.1.0.(1)"; // The number that is put before every question
 
-int numberOfAnswers = 0; // If there is no end word after the answer part, 
-                         // but you know how many answers there are, specify the number here.
+int numberOfAnswers = 4; // If there is no end word after the answer part, 
+                         // and/or you know how many answers there are, specify the number here.
                          // Leave 0 otherwise
-                         
+
+bool sort = false;  // If you don't need the correct answer to always be on top, put False
+                    // If you don't know/have the correct answers, also put False
+
 string keyWordRRCHeaderML = @"А\) "; // Specify the line that would stop the method that reads and writes header
 string keyWordRRCAnswersML = "END"; // Specify the line that would stop the method that counts the number of lines in the answer section
 string answerMarkers = @"[А-Я]\) "; // Specify the markers that are used in the answer section so that the program can accurately determine the number of answers in a question
 
 char[] replaceStartHeader = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ')', '.', '-', '–', '—', '―', '‒', ' ' }; // Contains characters to remove at the start of the header
 char[] replaceEndAnswer = { '.', ',', ':', ';', '-', '–', '—', '―', '‒', ' ' }; // Contains characters to remove at the end of an answer
-string[] removeNumberingInAnswers = { @"[А-Я]\) " }; // Specify digits or letters to remove from the beginning of the answers
+string[] removeNumberingInAnswers = { @"[А-Я]\) ", @"[0-9]\. " }; // Specify digits or letters to remove from the beginning of the answers
 
 bool markerIncluded = false; // True if the correct answer marker is in the answer itself 
                              // False if the correct answer marker is a separate line after the answer
@@ -53,8 +56,11 @@ if (type == "single") // Code for texts with single line for one sentence
 {
     for (int i = 1; i <= repeat; i++)
     {
-        // if (ReadWriteSpecificLine(source, workingFile, "К разделу") == true)
-        //     RemoveLines(source, 1);
+        for (int j = 0; j < 2; j++)
+        {
+            if (ReadWriteSpecificLine(source, workingFile, @"zxc") == true)
+            RemoveLines(source, 1);
+        }
         ReadWriteHeaderOneLine(source, workingFile);
         RemoveLines(source, 1);
         RemoveLines(source, ReadWriteAnswers(source, workingFile, numberOfAnswers));
@@ -63,8 +69,11 @@ if (type == "single") // Code for texts with single line for one sentence
 
 for (int i = 1; i <= repeat; i++)
 {
-    // if (ReadWriteSpecificLine(workingFile, workingFormattedFile, "К разделу") == true)
-    //     RemoveLines(workingFile, 1);
+    for (int j = 0; j < 2; j++)
+    {
+        if (ReadWriteSpecificLine(workingFile, workingFormattedFile, @"zxc") == true)
+        RemoveLines(workingFile, 1);
+    }
     ReadWrite(workingFile, workingFormattedFile, 3);
     RemoveLines(workingFile, 3);
     WriteArray
@@ -72,7 +81,7 @@ for (int i = 1; i <= repeat; i++)
             (FillArray
                 (CreateArray(ReadReturnCountAnswers(workingFile, numberOfAnswers)), 
             workingFile), 
-        markerIncluded),
+        sort, markerIncluded),
     workingFormattedFile);
     RemoveLines(workingFile, ReadReturnCountAnswers(workingFile, numberOfAnswers));
 }
@@ -162,8 +171,10 @@ string[] FillArray(string[] a, string original)
     return a;
 }
 
-string[] SortArray(string[] a, bool included)
+string[] SortArray(string[] a, bool sort, bool included)
 {
+    if (sort == false) return a;
+
     bool m = false;
 
     if (included == false)
