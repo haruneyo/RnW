@@ -5,20 +5,20 @@
 string source = "pure text.txt"; // Source file location
 string workingFile = "working file.txt"; // Intermediate file location
 string workingFormattedFile = "formatted file.txt"; // End file location
-bool needToRemoveEmptyLines = false; // True if need to remove all empty lines from the source file
-bool needToRemoveWhiteSpaces = false; // True if need to remove all white spaces from the source file
+bool needToRemoveEmptyLines = true; // True if need to remove all empty lines from the source file
+bool needToRemoveWhiteSpaces = true; // True if need to remove all white spaces from the source file
 
 string type = "single"; // Use "mult" for multiple lines for a sentence or "single" for a single line for a sentence
-int repeat = 25; // How many questions there are in the file 25
+int repeat = 17; // How many questions there are in the file
 
-string testNumber = "Номер:##43629.1.х.1.х.1.0.(1)"; // The number that is put before every question
+string testNumber = "Номер:##43630.1.х.1.х.1.0.(1)"; // The number that is put before every question
 
 int numberOfAnswers = 0; // If there is no end word after the answer part, 
                          // and/or you know how many answers there are, specify the number here.
                          // Leave 0 otherwise
 
-bool sort = true;  // If you don't need the correct answer to always be on top, put False
-                   // If you don't know/have the correct answers, also put False
+bool sort = false;  // If you don't need the correct answer to always be on top, put False
+                    // If you don't know/have the correct answers, also put False
 
 string keyWordRRCHeaderML = @"А\) "; // Specify the line that would stop the method that reads and writes header
 string keyWordRRCAnswersML = "END"; // Specify the line that would stop the method that counts the number of lines in the answer section
@@ -26,16 +26,17 @@ string answerMarkers = @"[А-Я]\) "; // Specify the markers that are used in th
 
 char[] replaceStartHeader = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ')', '.', '-', '–', '—', '―', '‒', ' ' }; // Contains characters to remove at the start of the header
 char[] replaceEndAnswer = { '.', ',', ':', ';', '-', '–', '—', '―', '‒', ' ' }; // Contains characters to remove at the end of an answer
-string[] removeNumberingInAnswers = { @"[А-Я]\) ", @"[0-9]\. ", @"[а-я]\) " }; // Specify digits or letters to remove from the beginning of the answers
+string[] removeNumberingInAnswers = { @"[А-Я]\) ", @"[0-9]\. ", @"[а-я]\)", @"[0-9]\) " }; // Specify digits or letters to remove from the beginning of the answers
 
-bool markerIncluded = true; // True if the correct answer marker is in the answer itself 
-                            // False if the correct answer marker is a separate line after the answer
+bool markerInside = true; // True if the correct answer marker is in the answer itself 
+                          // False if the correct answer marker is a separate line after the answer
 
 string correctAnswerContains = @"\(\+\)"; // If the correct answer marker is inside the answer, put it here
 char[] correctAnswerMarkerRemove = { '(', '+', ')', ' ' }; // Put the correct answer marker here character by character to remove it later
 
 string[] separateAnswerMarker = { "ANSW a", "ANSW b", "ANSW c", "ANSW d", "ANSW e", "ANSW f" }; // Those markers are used to put the correct answer to the first position in cases where there is a separate line specifying the correct answer
 
+bool removeLastLine = true; // True if you need to remove the last line in the answer array, usually there is an end marker
 string[] keyWordRRCAnswers = { "END" }; // Specify words that begin after the questions
 
 // ==========  Execution ========== //
@@ -78,11 +79,12 @@ for (int i = 1; i <= repeat; i++)
     ReadWrite(workingFile, workingFormattedFile, 3);
     RemoveLines(workingFile, 3);
     WriteArray
-        (SortArray
-            (FillArray
-                (CreateArray(ReadReturnCountAnswers(workingFile, numberOfAnswers)),
-            workingFile),
-        sort, markerIncluded),
+        (RemoveLastLineInArray
+            (SortArray
+                (FillArray
+                    (CreateArray(ReadReturnCountAnswers(workingFile, numberOfAnswers)),
+                workingFile),
+            sort, markerInside)),
     workingFormattedFile);
     RemoveLines(workingFile, ReadReturnCountAnswers(workingFile, numberOfAnswers));
 }
@@ -208,16 +210,21 @@ string[] SortArray(string[] a, bool sort, bool included)
             }
         }
     }
+    return a;
+}
 
-    for (int i = 0; i < keyWordRRCAnswers.Length; i++)
+string[] RemoveLastLineInArray(string[] a)
+{
+    if (removeLastLine == true)
     {
-        if (Regex.IsMatch(a[a.Length - 1], keyWordRRCAnswers[i]) == true)
+        for (int i = 0; i < keyWordRRCAnswers.Length; i++)
         {
-            a = a.Where((val, idx) => idx != a.Length - 1).ToArray();
+            if (Regex.IsMatch(a[a.Length - 1], keyWordRRCAnswers[i]) == true)
+            {
+                a = a.Where((val, idx) => idx != a.Length - 1).ToArray();
+            }
         }
-
     }
-
     return a;
 }
 
