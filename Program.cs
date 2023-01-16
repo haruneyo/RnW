@@ -5,24 +5,25 @@
 string source = "pure text.txt"; // Source file location
 string workingFile = "working file.txt"; // Intermediate file location
 string workingFormattedFile = "formatted file.txt"; // End file location
+
 bool needToRemoveEmptyLines = true; // True if need to remove all empty lines from the source file
 bool needToRemoveWhiteSpaces = true; // True if need to remove all white spaces from the source file
 
 string type = "single"; // Use "mult" for multiple lines for a sentence or "single" for a single line for a sentence
-int repeat = 17; // How many questions there are in the file
+int repeat = 71; // How many questions there are in the file
 
-string testNumber = "Номер:##43630.1.х.1.х.1.0.(1)"; // The number that is put before every question
+string testNumber = "Номер:##24322.1.1.1.1.1.0(1)"; // The number that is put before every question
 
 int numberOfAnswers = 0; // If there is no end word after the answer part, 
                          // and/or you know how many answers there are, specify the number here.
                          // Leave 0 otherwise
 
-bool sort = false;  // If you don't need the correct answer to always be on top, put False
-                    // If you don't know/have the correct answers, also put False
+bool sort = true;  // If you don't need the correct answer to always be on top, put False
+                   // If you don't know/have the correct answers, also put False
 
-string keyWordRRCHeaderML = @"А\) "; // Specify the line that would stop the method that reads and writes header
+string keyWordRRCHeaderML = @"1\. "; // Specify the line that would stop the method that reads and writes header
 string keyWordRRCAnswersML = "END"; // Specify the line that would stop the method that counts the number of lines in the answer section
-string answerMarkers = @"[А-Я]\) "; // Specify the markers that are used in the answer section so that the program can accurately determine the number of answers in a question
+string answerMarkers = @"[0-9]\. "; // Specify the markers that are used in the answer section so that the program can accurately determine the number of answers in a question
 
 char[] replaceStartHeader = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ')', '.', '-', '–', '—', '―', '‒', ' ' }; // Contains characters to remove at the start of the header
 char[] replaceEndAnswer = { '.', ',', ':', ';', '-', '–', '—', '―', '‒', ' ' }; // Contains characters to remove at the end of an answer
@@ -33,6 +34,7 @@ bool markerInside = true; // True if the correct answer marker is in the answer 
 
 string correctAnswerContains = @"\(\+\)"; // If the correct answer marker is inside the answer, put it here
 char[] correctAnswerMarkerRemove = { '(', '+', ')', ' ' }; // Put the correct answer marker here character by character to remove it later
+string whereToTrim = "start"; // Put "start" or "end" depending on the position of the marker
 
 string[] separateAnswerMarker = { "ANSW a", "ANSW b", "ANSW c", "ANSW d", "ANSW e", "ANSW f" }; // Those markers are used to put the correct answer to the first position in cases where there is a separate line specifying the correct answer
 
@@ -205,7 +207,14 @@ string[] SortArray(string[] a, bool sort, bool included)
                 string temp = a[0];
                 a[0] = a[i];
                 a[i] = temp;
-                a[0] = a[0].TrimEnd(correctAnswerMarkerRemove); // Change TrimEnd and TrimStart depending on the position of the marker
+                if (whereToTrim == "start")
+                {
+                    a[0] = a[0].TrimStart(correctAnswerMarkerRemove);
+                }
+                if (whereToTrim == "end")
+                {
+                    a[0] = a[0].TrimEnd(correctAnswerMarkerRemove);
+                }
                 break;
             }
         }
